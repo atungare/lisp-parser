@@ -1,19 +1,11 @@
-export function tokenize (expression) {
-  return expression
-    .replace(/\(/g, ' ( ')
-    .replace(/\)/g, ' ) ')
-    .trim()
-    .split(/\s+/);
-}
-
 function readToken (token) {
   if (token === '(') {
     return {
-      type: 'OPEN_PARENS'
+      type: 'OPENING_PARENS'
     };
   } else if (token === ')') {
     return {
-      type: 'CLOSED_PARENS'
+      type: 'CLOSING_PARENS'
     };
   } else if (token.match(/^\d+$/)) {
     return {
@@ -28,32 +20,36 @@ function readToken (token) {
   }
 }
 
+export function tokenize (expression) {
+  return expression
+    .replace(/\(/g, ' ( ')
+    .replace(/\)/g, ' ) ')
+    .trim()
+    .split(/\s+/)
+    .map(readToken);
+}
+
 export function buildAST (tokens) {
-  return tokens.reduce((ast, t) => {
-    const token = readToken(t);
-
-    if (token.type === 'OPEN_PARENS') {
+  return tokens.reduce((ast, token) => {
+    if (token.type === 'OPENING_PARENS') {
       ast.push([]);
-    } else if (token.type === 'CLOSED_PARENS') {
-      const current_sexp = ast.pop();
-      ast[ast.length - 1].push(current_sexp);
+    } else if (token.type === 'CLOSING_PARENS') {
+      const current_expression = ast.pop();
+      ast[ast.length - 1].push(current_expression);
     } else {
-      const current_sexp = ast.pop();
-      current_sexp.push(token.value);
-      ast.push(current_sexp);
+      const current_expression = ast.pop();
+      current_expression.push(token);
+      ast.push(current_expression);
     }
-
     return ast;
   }, [[]])[0][0];
 }
 
-
 export function parse (expression) {
-  const tokens = tokenize(expression);
-  return buildAST(tokens);
+  return buildAST(tokenize(expression));
 }
-
 
 export function evaluate (ast) {
   // TODO
+  return ast;
 }
